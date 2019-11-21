@@ -17,28 +17,11 @@ from models.unet16 import UNet16
 from paths import model_data_dir
 
 
-class TestDataOne(Dataset):
-    ## 只有一个需要预测的数据
-    def __init__(self, image_path, transform=None):
-        self.image_path = image_path
-        self.n = 1
-
-    def __len__(self):
-        return self.n
-
-    def __getitem__(self, index):
-        ### load image
-        image_file = self.image_path
-        img_np, W, H = load_image_from_file(image_file)
-        return img_np, W, H
-
-
 class TestDataset(Dataset):
-    def __init__(self, image_ids, image_path, transform=None):
-        self.image_ids = image_ids
-        self.image_path = image_path
+    def __init__(self, image_paths, transform=None):
+        self.image_paths = image_paths
         self.transform = transform
-        self.n = len(image_ids)
+        self.n = len(image_paths)
 
     def __len__(self):
         """
@@ -51,9 +34,8 @@ class TestDataset(Dataset):
         return self.n
 
     def __getitem__(self, index):
-        img_id = self.image_ids[index]
         ### load image
-        image_file = self.image_path + '%s.jpg' % img_id
+        image_file = self. # TODO 修改这个类
         img_np, W, H = load_image_from_file(image_file)
 
         # Image.resize(size, resample=0), PIL.Image.NEAREST
@@ -82,8 +64,10 @@ def load_image_from_file(image_path):
     # 返回图片的二维数组、宽、高
     return img_np, W, H
 
-
-def predict(image_path):
+def seg_predict_images_task2(image_path):
+    '''输入一组图片'''
+    pass
+def seg_predict_image_task2(image_path):
     '''
     输入一张图片的路径，输出预测的结果
     :param image_path:
@@ -139,8 +123,8 @@ def predict(image_path):
                     origin_image_np = put_predict_image(origin_image_np,test_mask,attr,alpha)
 
                     # Image.fromarray(origin_np).show()
-                    # cv2.imwrite(os.path.join("ISIC_%s_attribute_%s_1.png" % (image_name, attr)),
-                    #             test_mask)
+                    cv2.imwrite(os.path.join("ISIC_%s_attribute_%s_1.png" % (image_name, attr)),
+                                test_mask)
 
             save_picture(os.path.join("ISIC_%s_attribute_%s.png" % (image_name, attr)),
                         origin_image_np)
@@ -167,6 +151,7 @@ def put_predict_image(origin_image_np, test_mask, attr, alpha):
     :param alpha:
     :return:
     '''
+
     test_mask_RGB = Image.fromarray(test_mask.astype('uint8')).convert("RGB") # 将原始二值化图像转换成RGB
 
     test_mask_np = np.asarray(test_mask_RGB,dtype=np.int) # 将二值化图像转换成三维数组
@@ -189,14 +174,3 @@ def put_predict_image(origin_image_np, test_mask, attr, alpha):
     return origin_image_np
 if __name__ == '__main__':
     predict("/home/zhangfan/workData/LinuxCode/pythonProject/ISIC2018/datasets/ISIC2018/data/ISIC2018_Task1-2_Training_Input/ISIC_0000031.jpg")
-    #
-    #
-    #
-    # origin_image = Image.open("/home/zhangfan/workData/LinuxCode/pythonProject/ISIC2018/datasets/ISIC2018/data/ISIC2018_Task1-2_Test_Input/ISIC_0012236.jpg")
-    # pred_image = Image.open("/home/zhangfan/workData/LinuxCode/pythonProject/ISIC2018/runs/t.png")
-    # pred_image = pred_image.convert('RGB')
-    # origin_image_np = np.asarray(origin_image,dtype=np.uint8)
-    # pred_image_np = np.asarray(pred_image,dtype=np.uint8)
-    # test = np.bitwise_and(origin_image_np,pred_image_np)
-    # test_image = Image.fromarray(test)
-    # test_image.save("t_.png")

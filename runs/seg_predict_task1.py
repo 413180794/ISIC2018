@@ -1,3 +1,5 @@
+import argparse
+
 import numpy
 from PIL import Image
 from keras.models import load_model, model_from_json
@@ -18,57 +20,92 @@ def task1_tta_predict(model, img_arr):
     return mask_crops_pred
 
 
-
-def get_resize_image_np(image_path,output_size):
+def get_resize_image_np(image_path, output_size):
     # 得到改变形状的图片
     image = io.imread(image_path)
     # 转换为numpy
     image_np = numpy.asarray(image)
     # 得到图片宽、高、通道书
     W, H, channel = image_np.shape
-    print(W,H)
     # 将图片大小转换为(output_size,output_size)
     resize_image = transform.resize(image, (output_size, output_size),
-                                     order=1, mode='constant',
-                                     cval=0, clip=True,
-                                     preserve_range=True,
-                                     anti_aliasing=True)
-    resize_image_np = numpy.stack([resize_image,]).astype(numpy.uint8)
+                                    order=1, mode='constant',
+                                    cval=0, clip=True,
+                                    preserve_range=True,
+                                    anti_aliasing=True)
+    resize_image_np = numpy.stack([resize_image, ]).astype(numpy.uint8)
     print(resize_image_np.shape)
-    return resize_image_np,W,H
+    return resize_image_np, W, H
 
 
-
-def predict(image_path):
-    num_folds = 1
+def seg_predict_images_task1(image_paths, use_tta=False):
+    '''预测一组图片'''
+    num_folds = 4
     use_tta = False
-    y_pred = numpy.zeros(shape=(1,224,224))
+    image_num = len(image_paths)  # 得到图片的数量
+    y_pred = numpy.zeros(shape=(1, 224, 224))
+    if use_tta:
+        pass
+    else:
+        run_name = 'task1_vgg16_k%d_v0' % num_folds
+        model = backbone('vgg16').segmentation_model(load_from=run_name)
+        for image_path in image_paths:
+            resize_image_np, W, H = get_resize_image_np(image_path, 224)
+            y_pred += inv_sigmoid(model.predict_on_batch(resize_image_np))[:, :, :, 0]
+            y_pred = sigmoid(y_pred)
+            current_pred = y_pred[0] * 255
+            current_pred[current_pred > 128] = 255
+            current_pred[current_pred <= 128] = 0
+            print({
+                "image_np": current_pred,
+                "width": W,
+                "height": H
+            })
+
+
+def seg_predict_image_task1(image_path, use_tta=False):
+    '''只针对一张图片'''
+    num_folds = 4
+    # use_tta = False  # 如果为false,表示不采用取平均数方式
+    y_pred = numpy.zeros(shape=(1, 224, 224))
     resize_image_np, W, H = get_resize_image_np(image_path, 224)
-    for k_fold in range(num_folds):
-        print('Processing fold ' , k_fold)
-        model_name = 'task1_vgg16'
-        run_name = 'task1_vgg16_k%d_v0' % (k_fold)
-        model = backbone('vgg16').segmentation_model(load_from = run_name)
-        model.load_weights("/home/zhangfan/workData/LinuxCode/pythonProject/ISIC2018/model_data/task1_vgg16_k0_v0/task1_vgg16_k0_v0.hdf5")
-        y_pred += inv_sigmoid(model.predict_on_batch(resize_image_np))[:,:,:,0]
-    y_pred = y_pred / num_folds
+    if use_tta:
+        # 采用取平均数的模式
+        for k_fold in range(num_folds + 1):
+            model_name = 'task1_vgg16'
+            run_name = 'task1_vgg16_k%d_v0' % k_fold
+            model = backbone('vgg16').segmentation_model(load_from=run_name)
+            # model.load_weights("/home/zhangfan/workData/LinuxCode/pythonProject/ISIC2018/model_data/task1_vgg16_k0_v0/task1_vgg16_k0_v0.hdf5")
+            y_pred += inv_sigmoid(model.predict_on_batch(resize_image_np))[:, :, :, 0]
+        y_pred /= (num_folds + 1)
+    else:
+        # 只是用最后一组数据的权重
+        run_name = 'task1_vgg16_k%d_v0' % num_folds
+        model = backbone('vgg16').segmentation_model(load_from=run_name)
+        y_pred = inv_sigmoid(model.predict_on_batch(resize_image_np))[:, :, :, 0]
     y_pred = sigmoid(y_pred)
     current_pred = y_pred[0] * 255
 
-    resized_pred = transform.resize(current_pred,output_shape=(W,H),
-                                preserve_range=True,
-                                    mode='reflect',
-                                    anti_aliasing=True)
-    resized_pred[resized_pred > 128] = 255
-    resized_pred[resized_pred <= 128] = 0
-    im = Image.fromarray(resized_pred.astype(numpy.uint8))
-    print(im.size)
-    im.save("t.png")
-
-
+    # resized_pred = transform.resize(current_pred, output_shape=(W, H),
+    #                                 preserve_range=True,
+    #                                 mode='reflect',
+    #                                 anti_aliasing=True)
+    # resized_pred[resized_pred > 128] = 255
+    # resized_pred[resized_pred <= 128] = 0
+    current_pred[current_pred > 128] = 255
+    current_pred[current_pred <= 128] = 0
+    # 将resized_pred传给Nodejs
+    print({
+        "image_np": current_pred,
+        "width": W,
+        "height": H
+    })
+    # im = Image.fromarray(resized_pred.astype(numpy.uint8))
+    # im.save("t.png")
 
 
 if __name__ == '__main__':
-    predict("/home/zhangfan/workData/LinuxCode/pythonProject/ISIC2018/datasets/ISIC2018/data/ISIC2018_Task1-2_Test_Input/ISIC_0012236.jpg")
-
-
+    # predict("/home/zhangfan/workData/LinuxCode/pythonProject/ISIC2018/datasets/ISIC2018/data/ISIC2018_Task1-2_Test_Input/ISIC_0012236.jpg")
+    parser = argparse.ArgumentParser()
+    arg = parser.add_argument
+    arg('--image-path', type=str, default='data', help='please input image path')

@@ -19,7 +19,6 @@ def get_resize_image_np(image_path,output_size):
     image_np = np.asarray(image)
     # 得到图片宽、高、通道书
     W, H, channel = image_np.shape
-    print(W,H)
     # 将图片大小转换为(output_size,output_size)
     resize_image = transform.resize(image, (output_size, output_size),
                                     order=1, mode='constant',
@@ -27,7 +26,7 @@ def get_resize_image_np(image_path,output_size):
                                     preserve_range=True,
                                     anti_aliasing=True)
     resize_image_np = np.stack([resize_image,]).astype(np.uint8)
-    print(resize_image_np.shape)
+
     return resize_image_np,W,H
 
 def task3_tta_predict(model, img_arr):
@@ -41,7 +40,12 @@ def task3_tta_predict(model, img_arr):
 
     return pred_logits
 
-def predict(image_path):
+def cls_predict_images(image_paths):
+    '''识别一组图片'''
+    pass
+
+def cls_predict_image(image_path):
+    '''识别一张图片'''
     num_folds =5
 
     use_tta = False
@@ -51,7 +55,6 @@ def predict(image_path):
     resize_image_np,W,H = get_resize_image_np(image_path,224)
 
     for k_fold in range(num_folds):
-        print("Processing fold ",k_fold)
         run_name = "task3_inception_v3_k"+str(k_fold)+"_v0"
         model = backbone("inception_v3").classification_model(load_from=run_name)
         # 这里可以考虑使用多线程
@@ -62,8 +65,6 @@ def predict(image_path):
             y_pred += inv_sigmoid(model.predict_on_batch(resize_image_np))
     y_pred = y_pred / num_folds
     y_prob = softmax(y_pred)
-    print('image,MEL,NV,BCC,AKIEC,BKL,DF,VASC\n')
-    print(y_prob)
 
 if __name__ == '__main__':
     predict("/home/zhangfan/workData/LinuxCode/pythonProject/ISIC2018/datasets/ISIC2018/data/ISIC2018_Task3_Training_Input/ISIC_0024306.jpg")
