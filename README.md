@@ -39,6 +39,7 @@ Place the unzipped ISIC 2018 data in folders datasets/ISIC2018/data. This folder
 * ISIC2018_Task1-2_Validation_Input
 * ISIC2018_Task1-2_Test_Input
 * ISIC2018_Task1_Training_GroundTruth
+* ISIC2018_Task2_Training_GroundTruth_v3
 * ISIC2018_Task3_Training_GroundTruth
     * Include ISIC2018_Task3_Training_LesionGroupings.csv file. See [here](https://forum.isic-archive.com/t/task-3-supplemental-information/430) and [here](https://challenge.kitware.com/api/v1/file/5b0858b456357d4ff8575164/download)
 * ISIC2018_Task3_Training_Input
@@ -84,6 +85,25 @@ Set:
 * num_folds to 5 if you have done 5 fold training. Set it to 1 if you are using a single fold.
 * Set TTA = False if you do not want to use test time augmentation (which uses rotations of the image and averages predictions)
 * Set pred_set = 'test' for test set and set it 'validation' for validation set
+
+### Task2 (Lession Attribute detection)
+
+任务二,病变属性识别
+
+该任务模型与实现参考了 https://github.com/chvlyl/ISIC2018
+
+具体的实现方法,请移步到上述仓库
+
+本代码功能重点在于应用,对训练模型等细节不涉及.
+
+#### 使用方法
+
+运行runs/seg_predict_task2.py
+
+其中put_predict_image函数可以将生成的mask图像以不同的颜色以alpha透明度覆盖到原图像中
+
+
+
 
 ### Task 3 (Classification)
 
