@@ -429,6 +429,7 @@ def load_validation_data(task_idx, output_size=None):
 
 
 def load_test_data(task_idx, output_size=None):
+    # id判断当前的任务
     assert isinstance(task_idx, int) and 0 < task_idx <= 3
     if task_idx == 1 or task_idx == 2:
         images, image_sizes = load_task12_test_images(output_size=output_size)

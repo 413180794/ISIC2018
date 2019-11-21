@@ -130,8 +130,8 @@ if __name__ == '__main__':
                                 verbose=1,
                                 validation_data=(x_valid, y_valid),
                                 callbacks=callbacks,
-                                workers=8,
-                                use_multiprocessing=True)
+                                workers=0,
+                                use_multiprocessing=False)
 
         else:
 

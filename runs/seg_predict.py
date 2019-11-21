@@ -29,9 +29,11 @@ if __name__ == '__main__':
 
     pred_set = 'validation'  # or test
     load_func = load_validation_data if pred_set == 'validation' else load_test_data
+    # 100张224*224*3的图片
     images, image_names, image_sizes = load_func(task_idx=1, output_size=224)
-
-    # max_num_images = 10
+    print(images)
+    print(images.shape)
+    # max_num_images = 10use_
     max_num_images = images.shape[0]
     images = images[:max_num_images]
     image_names = image_names[:max_num_images]
@@ -39,7 +41,7 @@ if __name__ == '__main__':
 
     y_pred = np.zeros(shape=(max_num_images, 224, 224))
 
-    num_folds = 5
+    num_folds = 1
 
     print('Starting prediction for set %s with TTA set to %r with num_folds %d' % (pred_set, use_tta, num_folds))
 
@@ -73,7 +75,7 @@ if __name__ == '__main__':
                                  preserve_range=True,
                                  mode='reflect',
                                  anti_aliasing=True)
-
+        print(resized_pred.shape)
         resized_pred[resized_pred > 128] = 255
         resized_pred[resized_pred <= 128] = 0
 

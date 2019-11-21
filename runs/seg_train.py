@@ -9,7 +9,7 @@ if __name__ == '__main__':
     import numpy as np
     import sys
 
-    task_idx = 1
+    task_idx = 2
     version = '0'
 
     num_folds = 5
@@ -218,7 +218,7 @@ if __name__ == '__main__':
                                 verbose=1,
                                 validation_data=(x_valid, y_valid),
                                 callbacks=callbacks,
-                                workers=8,
+                                workers=0,
                                 use_multiprocessing=False)
         else:
 

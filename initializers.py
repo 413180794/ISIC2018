@@ -11,6 +11,7 @@ import math
 
 class PriorProbability(keras.initializers.Initializer):
     """
+
     Initializer applies a prior probability.
     """
 
