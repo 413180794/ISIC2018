@@ -159,7 +159,6 @@ class Backbone(object):
         from misc_utils.print_utils import on_aws
 
         if load_from:
-            print('loading from', load_from)
             model = load_model_from_run(self.backbone_name, load_from, load_from)
         elif load_model_from:
             model = load_model_from_run(self.backbone_name, load_model_from, load_weights_from)

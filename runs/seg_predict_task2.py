@@ -7,8 +7,8 @@ import os
 
 import cv2
 import torch
-from PIL import Image
 import torch.nn.functional as F
+from skimage import io
 from torch.backends import cudnn
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
@@ -35,12 +35,9 @@ class TestDataset(Dataset):
 
     def __getitem__(self, index):
         ### load image
-        image_file = self. # TODO 修改这个类
+        image_file = self.image_paths[index]
         img_np, W, H = load_image_from_file(image_file)
-
-        # Image.resize(size, resample=0), PIL.Image.NEAREST
-        ######
-        return img_id, img_np, W, H
+        return img_np, W, H
 
 
 def get_list_filename_extension(file_path):
@@ -52,7 +49,7 @@ def get_list_filename_extension(file_path):
 
 def load_image_from_file(image_path):
     # 读取图片文件，返回成可使用格式
-    img = Image.open(image_path)
+    img_np = io.imread(image_path)
     img = img.convert('RGB')
     img_np = np.asarray(img, dtype=np.float)
     img_np = (img_np / 255).astype('float32')
@@ -64,46 +61,36 @@ def load_image_from_file(image_path):
     # 返回图片的二维数组、宽、高
     return img_np, W, H
 
-def seg_predict_images_task2(image_path):
-    '''输入一组图片'''
-    pass
-def seg_predict_image_task2(image_path):
+def seg_predict_image_task2(image_paths):
     '''
     输入一张图片的路径，输出预测的结果
     :param image_path:
     :return:
     '''
-    data = TestDataOne(image_path)
+    data = TestDataset(image_paths)
     test_data = DataLoader(data, batch_size=1, shuffle=False, num_workers=10, pin_memory=False)
-
     model = UNet16(num_classes=5, pretrained='vgg')
     device = 'cpu'  # 使用cpu
     model.to(device)
     model_weight = os.path.join(model_data_dir, 'task2_vgg16_k0_v0', 'model.ckpt')  # 模型权重的地址
     state = torch.load(model_weight, map_location='cpu')  # model_weight为训练出的模型权重
-
     new_state = {}
+
     for k, v in state['model'].items():
-        print(k)
         if str(k).startswith("module."):
             k = k[7:]
         new_state[k] = v
 
     state['model'] = new_state
-
     model.load_state_dict(state['model'])
     cudnn.benchmark = True
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
     attr_types = ['pigment_network', 'negative_network', 'streaks', 'milia_like_cyst', 'globules']
-    _, image_name, _ = get_list_filename_extension(image_path)
     alpha = 0.5
-    
-    origin_image_np = np.asarray(Image.open(image_path)).astype('uint8')
-
     with torch.no_grad():
         for test_image, W, H in test_data:
-            print('Loading', image_name, 'W', W, 'H', H, 'resized image', test_image.size())
+            origin_image_np = test_image
             test_image = test_image.to(device)
 
             test_image = test_image.permute(0, 3, 1, 2)
@@ -114,20 +101,14 @@ def seg_predict_image_task2(image_path):
                 resize_mask = cv2.resize(test_prob[ind, :, :], (W, H), interpolation=cv2.INTER_CUBIC)
                 # for cutoff in [0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]:
                 for cutoff in [0.3]:
-                    # if not os.path.exists('submission_%s'%(cutoff)): os.makedirs('submission_%s'%(cutoff))
                     test_mask = (resize_mask > cutoff).astype('int') * 255
-                    # test_mask = np.bitwise_not(test_mask) # 将图像翻转颜色
-                    # test_mask 为预测的图像
-                    # Image.fromarray(test_mask).show()
-
                     origin_image_np = put_predict_image(origin_image_np,test_mask,attr,alpha)
-
-                    # Image.fromarray(origin_np).show()
-                    cv2.imwrite(os.path.join("ISIC_%s_attribute_%s_1.png" % (image_name, attr)),
-                                test_mask)
-
-            save_picture(os.path.join("ISIC_%s_attribute_%s.png" % (image_name, attr)),
-                        origin_image_np)
+            origin_image_np = cv2.resize(origin_image_np,W*H,interpolation=cv2.INTER_CUBIC)
+            print({
+                "image_np":origin_image_np,
+                "width":W,
+                "height":H
+            })
 
 def save_picture(image_path,image_np):
     b, g, r = cv2.split(image_np)
@@ -172,5 +153,3 @@ def put_predict_image(origin_image_np, test_mask, attr, alpha):
                 origin_image_np[row,col,1] = alpha*origin_image_np[row,col,1] + (1-alpha)*test_mask_np[row, col, 1]
                 origin_image_np[row,col,2] = alpha*origin_image_np[row,col,2] + (1-alpha)*test_mask_np[row, col, 2]
     return origin_image_np
-if __name__ == '__main__':
-    predict("/home/zhangfan/workData/LinuxCode/pythonProject/ISIC2018/datasets/ISIC2018/data/ISIC2018_Task1-2_Training_Input/ISIC_0000031.jpg")
