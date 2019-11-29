@@ -1,6 +1,7 @@
 import argparse
 
 import numpy as np
+from PIL import Image
 from skimage import transform
 from skimage import io
 from misc_utils.prediction_utils import inv_sigmoid, cyclic_pooling, cyclic_stacking, sigmoid
@@ -19,23 +20,27 @@ def task1_tta_predict(model, img_arr):
 
 def get_resize_image_np(image_path, output_size):
     # 得到改变形状的图片
-    image = io.imread(image_path)
+    image = Image.open(image_path)
+    # image = io.imread(image_path)
+    if image.mode != "RGB":
+        image = image.convert('RGB')
     # 转换为np
-    # image_np = np.asarray(image)
+    image_np = np.asarray(image)
     # 得到图片宽、高、通道书
-    W, H, channel = image.shape
+    W, H, channel = image_np.shape
+    print(image_np.shape)
     # 将图片大小转换为(output_size,output_size)
-    resize_image = transform.resize(image, (output_size, output_size),
+    resize_image_np = transform.resize(image_np, (output_size, output_size),
                                     order=1, mode='constant',
                                     cval=0, clip=True,
                                     preserve_range=True)
-    resize_image_np = np.stack([resize_image, ]).astype(np.uint8)
+    resize_image_np = np.stack([resize_image_np,]).astype(np.uint8)
     print(resize_image_np.shape)
     return resize_image_np, W, H
 
 
 def seg_predict_images_task1(image_paths, use_tta=False):
-    '''预测一组图片'''
+    '''输入图片地址，预测一组图片'''
     num_folds = 4
     use_tta = False
     image_num = len(image_paths)  # 得到图片的数量
@@ -59,6 +64,7 @@ def seg_predict_images_task1(image_paths, use_tta=False):
             })
 
 
+
 def seg_predict_image_task1(image_path, use_tta=False):
     '''只针对一张图片'''
     num_folds = 4
@@ -78,7 +84,7 @@ def seg_predict_image_task1(image_path, use_tta=False):
         # 只是用最后一组数据的权重
         run_name = 'task1_vgg16_k%d_v0' % num_folds
         model = backbone('vgg16').segmentation_model(load_from=run_name)
-        y_pred = inv_sigmoid(model.predict_on_batch(resize_image_np))[:, :, :, 0]
+        y_pred += inv_sigmoid(model.predict_on_batch(resize_image_np))[:, :, :, 0]
     y_pred = sigmoid(y_pred)
     current_pred = y_pred[0] * 255
     current_pred[current_pred > 128] = 255
@@ -93,7 +99,7 @@ def seg_predict_image_task1(image_path, use_tta=False):
 
 
 if __name__ == '__main__':
-    seg_predict_image_task1("/home/zhangfan/workData/LinuxCode/pythonProject/ISIC2018/datasets/ISIC2018/data/ISIC2018_Task1-2_Test_Input/ISIC_0012236.jpg")
+    seg_predict_image_task1("/Users/zhangfan/PycharmProjects/ISIC2018/images/task2_input.png")
     # parser = argparse.ArgumentParser()
     # arg = parser.add_argument
     # arg('--image-path', type=str, default='data', help='please input image path')
