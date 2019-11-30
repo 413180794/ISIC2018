@@ -99,7 +99,7 @@ def seg_predict_image_task1(image_path, use_tta=False):
 
 
 if __name__ == '__main__':
-    seg_predict_image_task1("/Users/zhangfan/PycharmProjects/ISIC2018/images/task2_input.png")
+    seg_predict_image_task1("/home/zhangfan/workData/LinuxCode/pythonProject/ISIC2018/datasets/ISIC2018/data/ISIC2018_Task1-2_Test_Input/ISIC_0012169.jpg")
     # parser = argparse.ArgumentParser()
     # arg = parser.add_argument
     # arg('--image-path', type=str, default='data', help='please input image path')

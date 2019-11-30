@@ -97,8 +97,7 @@ async def seg_predict_image_task1(sid, message):
     # 将图像还原为原来的大小
     resized_pred = transform.resize(current_pred, output_shape=(width, height),
                                     preserve_range=True,
-                                    mode='reflect',
-                                    anti_aliasing=True)
+                                    mode='reflect')
 
     # 将图像转换为rgba矩阵
     print(resized_pred)

@@ -8,6 +8,7 @@ import os
 import cv2
 import torch
 import torch.nn.functional as F
+from PIL import Image
 from skimage import io
 from torch.backends import cudnn
 from torch.utils.data import Dataset, DataLoader
@@ -50,8 +51,8 @@ def get_list_filename_extension(file_path):
 def load_image_from_file(image_path):
     # 读取图片文件，返回成可使用格式
     img_np = io.imread(image_path)
-    img = img.convert('RGB')
-    img_np = np.asarray(img, dtype=np.float)
+    # img = img.convert('RGB')
+    img_np = np.asarray(img_np, dtype=np.float)
     img_np = (img_np / 255).astype('float32')
     if len(img_np.shape) == 2:
         img_np = img_np[:, :, np.newaxis]
@@ -72,7 +73,7 @@ def seg_predict_image_task2(image_paths):
     model = UNet16(num_classes=5, pretrained='vgg')
     device = 'cpu'  # 使用cpu
     model.to(device)
-    model_weight = os.path.join(model_data_dir, 'task2_vgg16_k0_v0', 'model.ckpt')  # 模型权重的地址
+    model_weight = os.path.join(model_data_dir, 'task2_vgg16_k0_v0', 'task2_vgg16_k0_v0.ckpt')  # 模型权重的地址
     state = torch.load(model_weight, map_location='cpu')  # model_weight为训练出的模型权重
     new_state = {}
 
@@ -88,9 +89,10 @@ def seg_predict_image_task2(image_paths):
                                      std=[0.229, 0.224, 0.225])
     attr_types = ['pigment_network', 'negative_network', 'streaks', 'milia_like_cyst', 'globules']
     alpha = 0.5
+    origin_image_np = np.asarray(Image.open(image_paths[0]))
     with torch.no_grad():
         for test_image, W, H in test_data:
-            origin_image_np = test_image
+            # origin_image_np = test_image
             test_image = test_image.to(device)
 
             test_image = test_image.permute(0, 3, 1, 2)
@@ -103,7 +105,7 @@ def seg_predict_image_task2(image_paths):
                 for cutoff in [0.3]:
                     test_mask = (resize_mask > cutoff).astype('int') * 255
                     origin_image_np = put_predict_image(origin_image_np,test_mask,attr,alpha)
-            origin_image_np = cv2.resize(origin_image_np,W*H,interpolation=cv2.INTER_CUBIC)
+            origin_image_np = cv2.resize(origin_image_np,(W,H),interpolation=cv2.INTER_CUBIC)
             print({
                 "image_np":origin_image_np,
                 "width":W,
@@ -134,8 +136,8 @@ def put_predict_image(origin_image_np, test_mask, attr, alpha):
     '''
 
     test_mask_RGB = Image.fromarray(test_mask.astype('uint8')).convert("RGB") # 将原始二值化图像转换成RGB
-
-    test_mask_np = np.asarray(test_mask_RGB,dtype=np.int) # 将二值化图像转换成三维数组
+    # origin_image_np = np.asarray(origin_image_np,dtype=np.uint8)
+    test_mask_np = np.asarray(test_mask_RGB,dtype=np.uint8) # 将二值化图像转换成三维数组
     height, width, channels = test_mask_np.shape  # 获得图片的三个纬度
     # 转换预测图像的颜色
     origin_image_np.flags.writeable=True
@@ -153,3 +155,5 @@ def put_predict_image(origin_image_np, test_mask, attr, alpha):
                 origin_image_np[row,col,1] = alpha*origin_image_np[row,col,1] + (1-alpha)*test_mask_np[row, col, 1]
                 origin_image_np[row,col,2] = alpha*origin_image_np[row,col,2] + (1-alpha)*test_mask_np[row, col, 2]
     return origin_image_np
+if __name__ == '__main__':
+    seg_predict_image_task2(["/home/zhangfan/workData/LinuxCode/pythonProject/ISIC2018/datasets/ISIC2018/data/ISIC2018_Task1-2_Training_Input/ISIC_0000031.jpg",])
