@@ -160,5 +160,9 @@ Backbones supported: inception_v3, vgg16, vgg19, resnet50, densenet121, densenet
 
 Model data along with logs will be written in model_data directory.
 
+#### Task4 cls 
+
+在源代码的基础上
+实现皮肤病恶性良性识别
 
 

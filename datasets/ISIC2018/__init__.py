@@ -20,6 +20,11 @@ task3_img = 'ISIC2018_Task3_Training_Input'
 task3_validation_img = 'ISIC2018_Task3_Validation_Input'
 task3_test_img = 'ISIC2018_Task3_Test_Input'
 
+task4_img = "ISIC2018_Task4_Training_Input"
+task4_validation_img = "ISIC2018_Task4_Validation_input"
+task4_test_img = "ISIC2018_Task4_Test_Input"
+task4_benign = "benign"
+task4_malignant = "malignant"
 task1_gt = 'ISIC2018_Task1_Training_GroundTruth'
 task2_gt = 'ISIC2018_Task2_Training_GroundTruth_v3'
 task3_gt = 'ISIC2018_Task3_Training_GroundTruth'
@@ -43,6 +48,14 @@ task3_img_dir = os.path.join(data_dir, task3_img)
 task3_validation_img_dir = os.path.join(data_dir, task3_validation_img)
 task3_test_img_dir = os.path.join(data_dir, task3_test_img)
 
+# 注意task4的图片放在两个子文件夹中(benign,malignant)
+task4_img_benign_dir = os.path.join(data_dir, task4_img, task4_benign)
+task4_img_malignant_dir = os.path.join(data_dir, task4_img, task4_malignant)
+task4_validation_img_benign_dir = os.path.join(data_dir, task4_validation_img, task4_benign)
+task4_validation_img_malignant_dir = os.path.join(data_dir, task4_validation_img, task4_malignant)
+task4_test_img_benign_dir = os.path.join(data_dir, task4_test_img, task4_benign)
+task4_test_img_malignant_dir = os.path.join(data_dir, task4_test_img, task4_malignant)
+
 task1_gt_dir = os.path.join(data_dir, task1_gt)
 task2_gt_dir = os.path.join(data_dir, task2_gt)
 task3_gt_dir = os.path.join(data_dir, task3_gt)
@@ -62,7 +75,7 @@ if os.path.isdir(task12_validation_img_dir):
 task12_test_image_ids = list()
 if os.path.isdir(task12_test_img_dir):
     task12_test_image_ids = [fname.rsplit('.', maxsplit=1)[0] for fname in os.listdir(task12_test_img_dir)
-                                   if fname.startswith('ISIC') and fname.lower().endswith('.jpg')]
+                             if fname.startswith('ISIC') and fname.lower().endswith('.jpg')]
     task12_test_image_ids.sort()
 
 task3_image_ids = list()
@@ -81,8 +94,44 @@ if os.path.isdir(task3_validation_img_dir):
 task3_test_image_ids = list()
 if os.path.isdir(task3_test_img_dir):
     task3_test_image_ids = [fname.rsplit('.', maxsplit=1)[0] for fname in os.listdir(task3_test_img_dir)
-                                  if fname.startswith('ISIC') and fname.lower().endswith('.jpg')]
+                            if fname.startswith('ISIC') and fname.lower().endswith('.jpg')]
     task3_test_image_ids.sort()
+
+# 加载图片的序号，需要加载benign和malignant
+task4_image_benign_ids = list()
+if os.path.isdir(task4_img_benign_dir):
+    task4_image_benign_ids = [str(fname.rsplit(".", maxsplit=1)[0]) for fname in
+                              os.listdir(task4_img_benign_dir)]
+    task4_image_benign_ids.sort()
+
+task4_img_maligant_ids = list()
+if os.path.isdir(task4_img_malignant_dir):
+    task4_img_maligant_ids = [str(fname.rsplit(".", maxsplit=1)[0]) for fname in
+                              os.listdir(task4_img_malignant_dir)]
+
+task4_validation_img_benign_ids = list()
+if os.path.isdir(task4_validation_img_benign_dir):
+    task4_validation_img_benign_ids = [str(fname.rsplit(".", maxsplit=1)[0]) for fname in
+                                       os.listdir(task4_validation_img_benign_dir)]
+    task4_validation_img_benign_ids.sort()
+
+task4_validation_img_malignant_ids = list()
+if os.path.isdir(task4_validation_img_malignant_dir):
+    task4_validation_img_malignant_ids = [str(fname.rsplit(".", maxsplit=1)[0]) for fname in
+                                          os.listdir(task4_validation_img_malignant_dir)]
+    task4_validation_img_benign_ids.sort()
+
+task4_test_img_benign_ids = list()
+if os.path.isdir(task4_test_img_benign_dir):
+    task4_test_img_benign_ids = [str(fname.rsplit(".", maxsplit=1)[0]) for fname in
+                                 os.listdir(task4_test_img_benign_dir)]
+    task4_test_img_benign_ids.sort()
+
+task4_test_img_malignant_ids = list()
+if os.path.isdir(task4_test_img_benign_dir):
+    task4_test_img_malignant_ids = [str(fname.rsplit(".", maxsplit=1)[0]) for fname in
+                                    os.listdir(task4_test_img_malignant_dir)]
+    task4_test_img_malignant_ids.sort()
 
 task3_gt_fname = 'ISIC2018_Task3_Training_GroundTruth.csv'
 task3_sup_fname = 'ISIC2018_Task3_Training_LesionGroupings.csv'
@@ -95,15 +144,21 @@ task3_images_npy_prefix = 'task3_images'
 task3_validation_images_npy_prefix = 'task3_validation_images'
 task3_test_images_npy_prefix = 'task3_test_images'
 
+task4_images_npy_prefix = "task4_images"
+task4_validation_images_npy_prefix = "task4_validation_images"
+task4_test_images_npy_prefix = 'task4_test_images'
+
 task1_gt_npy_prefix = 'task1_masks'
 task2_gt_npy_prefix = 'task2_masks'
 task3_gt_npy_prefix = 'task3_labels'
+task4_gt_npy_prefix = 'task4_labels'
 
 task2_labels = ['globules',
                 'milia_like_cyst',
                 'negative_network',
                 'pigment_network',
                 'streaks.png']
+task4_labels = ['benign', 'malignant']
 
 ATTRIBUTE_GLOBULES = 1
 ATTRIBUTE_MILIA_LIKE_CYST = 2
@@ -134,8 +189,7 @@ def load_image_by_id(image_id, fname_fn, from_dir, output_size=None, return_size
             image = transform.resize(image, (output_size, output_size),
                                      order=1, mode='constant',
                                      cval=0, clip=True,
-                                     preserve_range=True,
-                                     anti_aliasing=True)
+                                     preserve_range=True)
         image = image.astype(np.uint8)
         images.append(image)
 
@@ -282,7 +336,6 @@ def load_task3_validation_images(output_size=None):
 
 
 def load_task3_test_images(output_size=None):
-
     suffix = '' if output_size is None else '_%d' % output_size
     images_npy_filename = os.path.join(cached_data_dir, '%s%s.npy' % (task3_test_images_npy_prefix, suffix))
 
@@ -299,6 +352,63 @@ def load_task3_test_images(output_size=None):
         images = np.stack(images).astype(np.uint8)
         np.save(images_npy_filename, images)
 
+    return images
+
+
+def load_task4_training_images(output_size=None):
+    suffix = "" if output_size is None else "_%d" % output_size
+    images_npy_filename = os.path.join(cached_data_dir, "%s%s.npy" % (task4_images_npy_prefix, suffix))
+    if os.path.exists(images_npy_filename):
+        images = np.load(images_npy_filename)
+    else:
+        images_benign = load_images(image_ids=task4_image_benign_ids,
+                                    from_dir=task4_img_benign_dir,
+                                    output_size=output_size,
+                                    fname_fn=lambda x: "%s.jpg" % x)
+        images_malignant = load_images(image_ids=task4_img_maligant_ids,
+                                       from_dir=task4_img_malignant_dir,
+                                       output_size=output_size,
+                                       fname_fn=lambda x: "%s.jpg" % x)
+        images = np.stack(images_benign + images_malignant).astype(np.uint8)
+        np.save(images_npy_filename, images)
+    return images
+
+
+def load_task4_validation_images(output_size=None):
+    suffix = "" if output_size is None else "_%d" % output_size
+    images_npy_filename = os.path.join(cached_data_dir, "%s%s.npy" % (task4_validation_images_npy_prefix, suffix))
+    if os.path.exists(images_npy_filename):
+        images = np.load(images_npy_filename)
+    else:
+        images_benign = load_images(image_ids=task4_validation_img_benign_ids,
+                                    from_dir=task4_validation_img_benign_dir,
+                                    output_size=output_size,
+                                    fname_fn=lambda x: "%s.jpg" % x)
+        images_malignant = load_images(image_ids=task4_validation_img_malignant_ids,
+                                       from_dir=task4_validation_img_malignant_dir,
+                                       output_size=output_size,
+                                       fname_fn=lambda x: "%s.jpg" % x)
+        images = np.stack(images_benign + images_malignant).astype(np.uint8)
+        np.save(images_npy_filename, images)
+    return images
+
+
+def load_task4_test_images(output_size=None):
+    suffix = "" if output_size is None else "_%d" % output_size
+    images_npy_filename = os.path.join(cached_data_dir, "%s%s.npy" % (task4_test_images_npy_prefix, suffix))
+    if os.path.exists(images_npy_filename):
+        images = np.load(images_npy_filename)
+    else:
+        images_benign = load_images(image_ids=task4_test_img_benign_ids,
+                                    from_dir=task4_test_img_benign_dir,
+                                    output_size=output_size,
+                                    fname_fn=lambda x: "%s.jpg" % x)
+        images_malignant = load_images(image_ids=task4_test_img_malignant_ids,
+                                       from_dir=task4_test_img_malignant_dir,
+                                       output_size=output_size,
+                                       fname_fn=lambda x: "%s.jpg" % x)
+        images = np.stack(images_benign + images_malignant).astype(np.uint8)
+        np.save(images_npy_filename, images)
     return images
 
 
@@ -352,6 +462,32 @@ def load_task3_training_labels():
         labels = np.stack(labels, axis=0)
     return labels
 
+def load_task4_validation_labels():
+    labels = []
+    for i in range(len(os.listdir(task4_validation_img_benign_dir))):
+        labels.append([1,0])
+    for i in range(len(os.listdir(task4_validation_img_malignant_dir))):
+        labels.append([0, 1])
+    labels = np.stack(labels, axis=0)
+    return labels
+def load_task4_test_labels():
+    labels = []
+    for i in range(len(os.listdir(task4_test_img_benign_dir))):
+        labels.append([1, 0])
+    for i in range(len(os.listdir(task4_test_img_malignant_dir))):
+        labels.append([0, 1])
+    labels = np.stack(labels, axis=0)
+    return labels
+def load_task4_training_labels():
+    # image , benign, maligant
+    labels = []
+    for i in range(len(os.listdir(task4_img_benign_dir))):
+        labels.append([1, 0])
+    for i in range(len(os.listdir(task4_img_malignant_dir))):
+        labels.append([0, 1])
+    labels = np.stack(labels, axis=0)
+    return labels
+
 
 def partition_task3_data(x, y, k=5, i=0, test_split=1. / 6, seed=42):
     assert isinstance(k, int) and isinstance(i, int) and 0 <= i < k
@@ -402,7 +538,7 @@ def load_training_data(task_idx,
                        num_partitions=5,
                        idx_partition=0,
                        test_split=0.):
-    assert isinstance(task_idx, int) and 0 < task_idx <= 3
+    assert isinstance(task_idx, int) and 0 < task_idx <= 4
     if task_idx == 1:
         x = load_task12_training_images(output_size=output_size)
         y = load_task1_training_masks(output_size=output_size)
@@ -413,19 +549,28 @@ def load_training_data(task_idx,
         y = load_task2_training_masks(output_size=output_size)
         return partition_data(x=x, y=y, k=num_partitions, i=idx_partition, test_split=test_split)
 
-    else:
+    elif task_idx == 3:
         x = load_task3_training_images(output_size=output_size)
         y = load_task3_training_labels()
         return partition_task3_data(x=x, y=y, k=num_partitions, i=idx_partition, test_split=test_split)
-
-
+    elif task_idx == 4:
+        x_train = load_task4_training_images(output_size=output_size)
+        y_train = load_task4_training_labels()
+        x_valid = load_task4_validation_images(output_size=output_size)
+        y_valid = load_task4_validation_labels()
+        x_test  = load_task4_test_images(output_size=output_size)
+        y_test  = load_task4_test_labels()
+        return (x_train,y_train),(x_valid,y_valid),(x_test,y_test)
 def load_validation_data(task_idx, output_size=None):
     assert isinstance(task_idx, int) and 0 < task_idx <= 3
     if task_idx == 1 or task_idx == 2:
         images, image_sizes = load_task12_validation_images(output_size=output_size)
         return images, task12_validation_image_ids, image_sizes
-    else:
+    elif task_idx == 3:
         return load_task3_validation_images(output_size=output_size), task3_validation_image_ids
+    elif task_idx == 4:
+        return load_task4_validation_images(
+            output_size=output_size), task4_validation_img_benign_ids, task4_validation_img_malignant_ids
 
 
 def load_test_data(task_idx, output_size=None):
@@ -434,8 +579,10 @@ def load_test_data(task_idx, output_size=None):
     if task_idx == 1 or task_idx == 2:
         images, image_sizes = load_task12_test_images(output_size=output_size)
         return images, task12_test_image_ids, image_sizes
-    else:
+    elif task_idx == 3:
         return load_task3_test_images(output_size=output_size), task3_test_image_ids
+    elif task_idx == 4:
+        return load_task4_test_images(output_size=output_size),task4_test_img_benign_ids,task4_test_img_malignant_ids
 
 
 def partition_data(x, y, k=5, i=0, test_split=1. / 6, seed=42):

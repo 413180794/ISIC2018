@@ -12,6 +12,11 @@ struct task3_result{
     1:string name;
     2:list<double> result;
 }
+
+struct task4_result{
+    1:string name;
+    2:list<double> result;
+}
 service predictService {
 // 注意地址的应用，我们不保存图片，因为图片已经保存在本地了
 // 稍后做如下优化
@@ -25,4 +30,7 @@ service predictService {
 
 //  task3应用：分类一组图片
     list<task3_result> cls_predict_images_task3(1:list<string> image_paths)
+
+//  task4应用:二分类一组图片
+    list<task4_result> cls_predict_images_task4(1:list<string> image_paths)
 }

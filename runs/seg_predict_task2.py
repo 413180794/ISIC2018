@@ -113,6 +113,7 @@ def seg_predict_image_task2(image_paths):
             })
 
 def save_picture(image_path,image_np):
+    u
     b, g, r = cv2.split(image_np)
     cv2.imwrite(image_path,cv2.merge([r,g,b]))
 

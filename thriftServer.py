@@ -18,7 +18,8 @@ import torch.nn.functional as F
 from misc_utils.prediction_utils import inv_sigmoid, sigmoid
 from models import backbone
 from models.unet16 import UNet16
-from paths import task2_model_name, task1_model_name, task3_model_name, task1_result_dir, task2_result_dir
+from paths import task2_model_name, task1_model_name, task3_model_name, task1_result_dir, task2_result_dir, \
+    task4_model_name
 from runs.seg_eval import task1_post_process
 from keras import Model
 predict_thrift = thriftpy2.load("server.thrift", module_name="predict_thrift")
@@ -173,7 +174,8 @@ class Handler:
         process_task2_model(self.task2_model)
         task3_model_ = backbone('inception_v3').classification_model(load_from=task3_model_name)
         self.task3_model = Model(inputs=task3_model_.input,outputs=task3_model_.get_layer('predictions').output)
-
+        task4_model_ = backbone('inception_v3').classification_model(load_from=task4_model_name)
+        self.task4_model = Model(inputs=task4_model_.input,outputs=task4_model_.get_layer('predictions').output)
 
     def seg_predict_images_task1(self,image_paths):
         results = []
@@ -226,8 +228,6 @@ class Handler:
 
 
     def cls_predict_images_task3(self,image_paths):
-
-        predict_thrift.task3_result()
         results = []
         resize_images_np, images_size = get_resize_images_np(image_paths)
         images_num = len(images_size)
@@ -235,7 +235,6 @@ class Handler:
         with self.graph.as_default():
             y_pred += self.task3_model.predict_on_batch(resize_images_np)
         y_prob = sigmoid(y_pred)
-
         for index,image_path in enumerate(image_paths):
             task3_result = predict_thrift.task3_result()
             task3_result.name = image_path
@@ -243,16 +242,32 @@ class Handler:
             results.append(task3_result)
         return results
 
+    def cls_predict_images_task4(self,image_paths):
+        results = []
+        resize_images_np, images_size = get_resize_images_np(image_paths)
+        images_num = len(images_size)
+        y_pred = np.zeros(shape=(images_num, 2))
+        with self.graph.as_default():
+            y_pred += self.task4_model.predict_on_batch(resize_images_np)
+        y_prob = sigmoid(y_pred)
+        for index, image_path in enumerate(image_paths):
+            task4_result = predict_thrift.task4_result()
+            task4_result.name = image_path
+            task4_result.result = y_prob[index]
+            results.append(task4_result)
+        return results
+
+
 if __name__ == '__main__':
-    server = make_server(predict_thrift.predictService,Handler(),
-                         "127.0.0.1",8080,
-                         proto_factory=TBinaryProtocolFactory(),
-                         trans_factory=TBufferedTransportFactory(),client_timeout=None)
-    print("start")
-    server.serve()
+    # server = make_server(predict_thrift.predictService,Handler(),
+    #                      "127.0.0.1",8080,
+    #                      proto_factory=TBinaryProtocolFactory(),
+    #                      trans_factory=TBufferedTransportFactory(),client_timeout=None)
+    # print("start")
+    # server.serve()
     # server.trans.client_timeout = None
-    # x = Handler()
-    # print(x.seg_predict_images_task2([
-    #     "/home/zhangfan/workData/LinuxCode/pythonProject/ISIC2018/datasets/ISIC2018/data/ISIC2018_Task1-2_Test_Input/ISIC_0012292.jpg", ]))
+    x = Handler()
+    print(x.seg_predict_images_task1([
+        "/home/zhangfan/workData/LinuxCode/pythonProject/ISIC2018/datasets/ISIC2018/data/ISIC2018_Task1-2_Test_Input/ISIC_0012292.jpg", ]))
     # print(get_fileDirectoryPath_fileName_fileExt(
     #     "/home/zhangfan/workData/Linuxsode/pythonProject/ISIC2018/datasets/ISIC2018/data/ISIC2018_Task1-2_Test_Input/ISIC_0012292.ji"))
